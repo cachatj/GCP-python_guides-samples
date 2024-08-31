@@ -12,14 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import time
-
-
 # [START functions_concepts_stateless]
+import functions_framework
+
+
 # Global variable, modified within the function by using the global keyword.
 count = 0
 
 
+@functions_framework.http
 def statelessness(request):
     """
     HTTP Cloud Function that counts how many times it is executed
@@ -37,5 +38,7 @@ def statelessness(request):
 
     # Note: the total function invocation count across
     # all instances may not be equal to this value!
-    return 'Instance execution count: {}'.format(count)
+    return f"Instance execution count: {count}"
+
+
 # [END functions_concepts_stateless]

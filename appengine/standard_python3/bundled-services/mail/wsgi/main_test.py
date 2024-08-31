@@ -56,6 +56,20 @@ def gcloud_cli(command):
     raise Exception(output.stderr)
 
 
+@backoff.on_exception(backoff.expo, requests.exceptions.HTTPError, max_time=300)
+def get_with_retries(url):
+    r = requests.get(url)
+    r.raise_for_status()
+    return r
+
+
+@backoff.on_exception(backoff.expo, requests.exceptions.HTTPError, max_tries=6)
+def post_with_retries(url, data):
+    r = requests.post(url, data=data)
+    r.raise_for_status()
+    return r
+
+
 @pytest.fixture
 def version():
     """Launch a new version of the app for testing, and yield the
@@ -65,6 +79,10 @@ def version():
     result = gcloud_cli(f"app deploy --no-promote --version={uuid.uuid4().hex}")
     version_id = result["versions"][0]["id"]
     project_id = result["versions"][0]["project"]
+    version_hostname = f"{version_id}-dot-{project_id}.appspot.com"
+
+    # Wait for app to initialize
+    get_with_retries(f"https://{version_hostname}/")
 
     yield project_id, version_id
 
@@ -76,12 +94,12 @@ def test_send_receive(version):
     version_hostname = f"{version_id}-dot-{project_id}.appspot.com"
 
     # Check that version is serving form in home page
-    response = requests.get(f"https://{version_hostname}/")
+    response = get_with_retries(f"https://{version_hostname}/")
     assert '<form action="" method="POST">' in response.text
     assert response.status_code == 200
 
     # Send valid mail
-    response = requests.post(
+    response = post_with_retries(
         f"https://{version_hostname}/",
         data={
             "email": f"valid-user@{version_id}-dot-{project_id}.appspotmail.com",
@@ -92,19 +110,24 @@ def test_send_receive(version):
     assert "Successfully sent mail" in response.text
     assert response.status_code == 201
 
-    # Give the mail some time to be delivered and logs to post
-    time.sleep(60)
+    # External mail delivery and receipt can take varying lengths of time
+    for check in range(3):
+        # Give the mail some time to be delivered and logs to post
+        time.sleep(60)
 
-    # Fetch logs to check messages on received mail
-    entries = gcloud_cli(
-        f'logging read "resource.type=gae_app AND resource.labels.version_id={version_id}"'
-    )
+        # Fetch logs to check messages on received mail
+        entries = gcloud_cli(
+            f'logging read "resource.type=gae_app AND resource.labels.version_id={version_id}"'
+        )
 
-    text_payloads = ""
-    for entry in entries:
-        if "textPayload" in entry:
-            text_payloads += entry["textPayload"]
-            text_payloads += "\n"
+        text_payloads = ""
+        for entry in entries:
+            if "textPayload" in entry:
+                text_payloads += entry["textPayload"]
+                text_payloads += "\n"
+
+        if "Received" in text_payloads:
+            break
 
     expected = f"Received greeting for valid-user@{version_id}-dot-{project_id}.appspotmail.com"
     assert expected in text_payloads

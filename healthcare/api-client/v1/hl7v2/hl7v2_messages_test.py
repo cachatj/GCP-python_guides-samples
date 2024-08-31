@@ -22,7 +22,8 @@ import pytest
 
 # Add datasets for bootstrapping datasets for testing
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "datasets"))  # noqa
-import datasets  # noqa
+from create_dataset import create_dataset  # noqa
+from delete_dataset import delete_dataset  # noqa
 import hl7v2_messages  # noqa
 import hl7v2_stores  # noqa
 
@@ -30,8 +31,8 @@ import hl7v2_stores  # noqa
 location = "us-central1"
 project_id = os.environ["GOOGLE_CLOUD_PROJECT"]
 
-dataset_id = "test_dataset_{}".format(uuid.uuid4())
-hl7v2_store_id = "test_hl7v2_store-{}".format(uuid.uuid4())
+dataset_id = f"test_dataset_{uuid.uuid4()}"
+hl7v2_store_id = f"test_hl7v2_store-{uuid.uuid4()}"
 hl7v2_message_file = "resources/hl7-sample-ingest.json"
 label_key = "PROCESSED"
 label_value = "TRUE"
@@ -42,13 +43,13 @@ def test_dataset():
     @backoff.on_exception(backoff.expo, HttpError, max_time=60)
     def create():
         try:
-            datasets.create_dataset(project_id, location, dataset_id)
+            create_dataset(project_id, location, dataset_id)
         except HttpError as err:
             # We ignore 409 conflict here, because we know it's most
             # likely the first request failed on the client side, but
             # the creation suceeded on the server side.
             if err.resp.status == 409:
-                print("Got exception {} while creating dataset".format(err.resp.status))
+                print(f"Got exception {err.resp.status} while creating dataset")
             else:
                 raise
 
@@ -60,11 +61,11 @@ def test_dataset():
     @backoff.on_exception(backoff.expo, HttpError, max_time=60)
     def clean_up():
         try:
-            datasets.delete_dataset(project_id, location, dataset_id)
+            delete_dataset(project_id, location, dataset_id)
         except HttpError as err:
             # The API returns 403 when the dataset doesn't exist.
             if err.resp.status == 404 or err.resp.status == 403:
-                print("Got exception {} while deleting dataset".format(err.resp.status))
+                print(f"Got exception {err.resp.status} while deleting dataset")
             else:
                 raise
 

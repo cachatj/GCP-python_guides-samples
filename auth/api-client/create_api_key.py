@@ -12,15 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# [START auth_cloud_create_api_key]
+# [START apikeys_create_api_key]
 
 from google.cloud import api_keys_v2
 from google.cloud.api_keys_v2 import Key
 
 
-def create_api_key(project_id: str) -> Key:
+def create_api_key(project_id: str, suffix: str) -> Key:
     """
-    Creates and restrict an API key.
+    Creates and restrict an API key. Add the suffix for uniqueness.
 
     TODO(Developer):
     1. Before running this sample,
@@ -33,12 +33,11 @@ def create_api_key(project_id: str) -> Key:
     Returns:
         response: Returns the created API Key.
     """
-
     # Create the API Keys client.
     client = api_keys_v2.ApiKeysClient()
 
     key = api_keys_v2.Key()
-    key.display_name = "My first API key"
+    key.display_name = f"My first API key - {suffix}"
 
     # Initialize request and set arguments.
     request = api_keys_v2.CreateKeyRequest()
@@ -53,4 +52,5 @@ def create_api_key(project_id: str) -> Key:
     # To restrict the usage of this API key, use the value in "response.name".
     return response
 
-# [END auth_cloud_create_api_key]
+
+# [END apikeys_create_api_key]

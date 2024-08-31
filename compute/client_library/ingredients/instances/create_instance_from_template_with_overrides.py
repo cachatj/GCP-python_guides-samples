@@ -12,7 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-# This is an ingredient file. It is not meant to be run directly. Check the samples/snippets 
+# This is an ingredient file. It is not meant to be run directly. Check the samples/snippets
 # folder for complete code samples that are ready to be used.
 # Disabling flake8 for the ingredients file, as it would fail F821 - undefined name check.
 # flake8: noqa
@@ -45,7 +45,7 @@ def create_instance_from_template_with_overrides(
               https://cloud.google.com/sdk/gcloud/reference/compute/machine-types/list
         new_disk_source_image: Path the the disk image you want to use for your new
             disk. This can be one of the public images
-            (like "projects/debian-cloud/global/images/family/debian-10")
+            (like "projects/debian-cloud/global/images/family/debian-12")
             or a private image you have access to.
             For a list of available public images, see the documentation:
             http://cloud.google.com/compute/docs/images
@@ -93,4 +93,6 @@ def create_instance_from_template_with_overrides(
     wait_for_extended_operation(operation, "instance creation")
 
     return instance_client.get(project=project_id, zone=zone, instance=instance_name)
+
+
 # </INGREDIENT>

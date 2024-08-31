@@ -22,15 +22,14 @@ import pytest
 from .test_instance_start_stop import compute_instance  # noqa: F401
 
 from ..instance_templates.create import create_template
-from ..instance_templates.create_from_instance import \
-    create_template_from_instance
+from ..instance_templates.create_from_instance import create_template_from_instance
 from ..instance_templates.create_with_subnet import create_template_with_subnet
 from ..instance_templates.delete import delete_instance_template
 from ..instance_templates.list import list_instance_templates
 
 PROJECT = google.auth.default()[1]
 
-INSTANCE_ZONE = "europe-central2-b"
+INSTANCE_ZONE = "europe-west2-b"
 
 
 @pytest.fixture
@@ -48,7 +47,6 @@ def template_to_be_deleted():
 
 
 def test_create_template_and_list(deletable_template_name):
-
     template = create_template(PROJECT, deletable_template_name)
 
     assert template.name == deletable_template_name
@@ -58,12 +56,14 @@ def test_create_template_and_list(deletable_template_name):
     )
     assert template.properties.disks[0].initialize_params.disk_size_gb == 250
     assert "debian-11" in template.properties.disks[0].initialize_params.source_image
-    assert template.properties.network_interfaces[0].name == "global/networks/default"
+    assert template.properties.network_interfaces[0].name == "nic0"
+    assert template.properties.network_interfaces[0].network.endswith(
+        "global/networks/default"
+    )
     assert template.properties.machine_type == "e2-standard-4"
 
 
 def test_create_from_instance(compute_instance, deletable_template_name):  # noqa: F811
-
     template = create_template_from_instance(
         PROJECT, compute_instance.self_link, deletable_template_name
     )

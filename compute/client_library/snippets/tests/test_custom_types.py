@@ -45,7 +45,7 @@ def auto_delete_instance_name():
 def instance():
     instance_name = "test-instance-" + uuid.uuid4().hex[:10]
 
-    newest_debian = get_image_from_family(project="debian-cloud", family="debian-10")
+    newest_debian = get_image_from_family(project="debian-cloud", family="debian-12")
     disk_type = f"zones/{INSTANCE_ZONE}/diskTypes/pd-standard"
     disks = [disk_from_image(disk_type, 10, True, newest_debian.self_link)]
 
@@ -186,19 +186,15 @@ def test_from_str_creation():
     assert cmt.cpu_series == CustomMachineType.CPUSeries.E2_SMALL
     assert cmt.core_count == 2
 
-    cmt = CustomMachineType.from_str(
-        "zones/europe-central2-b/machineTypes/custom-2-2048"
-    )
-    assert cmt.zone == "europe-central2-b"
+    cmt = CustomMachineType.from_str("zones/europe-west2-b/machineTypes/custom-2-2048")
+    assert cmt.zone == "europe-west2-b"
     assert cmt.memory_mb == 2048
     assert cmt.extra_memory_used is False
     assert cmt.cpu_series is CustomMachineType.CPUSeries.N1
     assert cmt.core_count == 2
 
     try:
-        CustomMachineType.from_str(
-            "zones/europe-central2-b/machineTypes/n8-custom-2-1024"
-        )
+        CustomMachineType.from_str("zones/europe-west2-b/machineTypes/n8-custom-2-1024")
     except RuntimeError as err:
         assert err.args[0] == "Unknown CPU series."
     else:

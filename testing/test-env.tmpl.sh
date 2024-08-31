@@ -15,7 +15,10 @@
 # Environment variables for system tests.
 export GOOGLE_CLOUD_PROJECT=your-project-id
 export GCP_PROJECT=$GOOGLE_CLOUD_PROJECT
+export GOOGLE_CLOUD_PROJECT_NUMBER=
 export FIRESTORE_PROJECT=
+export SCC_PROJECT_ORG_ID=
+export SCC_PROJECT_ID=
 
 export CLOUD_STORAGE_BUCKET=$GOOGLE_CLOUD_PROJECT
 export REQUESTER_PAYS_TEST_BUCKET="${CLOUD_STORAGE_BUCKET}-requester-pays-test"
@@ -112,3 +115,6 @@ export CONNECTOR=
 # Dialogflow examples.
 export SMART_REPLY_MODEL=
 export SMART_REPLY_ALLOWLIST=
+
+# Datastore/Firestore
+export DATASTORE_DATABASE=

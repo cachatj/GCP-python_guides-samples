@@ -13,7 +13,11 @@
 # limitations under the License.
 
 
+# [START functions_tips_scopes]
+# [START cloudrun_tips_global_scope]
 import time
+
+import functions_framework
 
 
 # Placeholder
@@ -26,13 +30,12 @@ def light_computation():
     return time.time()
 
 
-# [START functions_tips_scopes]
-# [START cloudrun_tips_global_scope]
 # Global (instance-wide) scope
 # This computation runs at instance cold-start
 instance_var = heavy_computation()
 
 
+@functions_framework.http
 def scope_demo(request):
     """
     HTTP Cloud Function that declares a variable.
@@ -48,6 +51,8 @@ def scope_demo(request):
     # Per-function scope
     # This computation runs every time this function is called
     function_var = light_computation()
-    return 'Instance: {}; function: {}'.format(instance_var, function_var)
+    return f"Instance: {instance_var}; function: {function_var}"
+
+
 # [END functions_tips_scopes]
 # [END cloudrun_tips_global_scope]

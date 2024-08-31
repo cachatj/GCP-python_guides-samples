@@ -16,20 +16,23 @@
 # folder for complete code samples that are ready to be used.
 # Disabling flake8 for the ingredients file, as it would fail F821 - undefined name check.
 # flake8: noqa
-import sys
-from typing import NoReturn, Iterable
+from __future__ import annotations
+
+from collections.abc import Iterable
 
 from google.cloud import compute_v1
 
 
 # <INGREDIENT list_disks>
-def list_disks(project_id: str, zone: str, filter_: str = "") -> Iterable[compute_v1.Disk]:
+def list_disks(
+    project_id: str, zone: str, filter_: str = ""
+) -> Iterable[compute_v1.Disk]:
     """
-    Deletes a disk from a project.
+    Lists disks in a project.
 
     Args:
         project_id: project ID or project number of the Cloud project you want to use.
-        zone: name of the zone in which is the disk you want to delete.
+        zone: name of the zone
         filter_: filter to be applied when listing disks. Learn more about filters here:
             https://cloud.google.com/python/docs/reference/compute/latest/google.cloud.compute_v1.types.ListDisksRequest
     """
@@ -39,5 +42,6 @@ def list_disks(project_id: str, zone: str, filter_: str = "") -> Iterable[comput
     request.zone = zone
     request.filter = filter_
     return disk_client.list(request)
-# </INGREDIENT>
 
+
+# </INGREDIENT>

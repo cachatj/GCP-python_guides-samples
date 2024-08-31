@@ -21,6 +21,9 @@ from urllib import error, request
 import uuid
 
 import pytest
+import requests
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 
 
 @pytest.fixture()
@@ -42,33 +45,42 @@ def services():
             "--source",
             ".",
             "--region=us-central1",
-            "--no-allow-unauthenticated",
+            "--allow-unauthenticated",
             "--quiet",
         ],
         check=True,
     )
 
     # Get the URL for the service
-    endpoint_url = subprocess.run(
-        [
-            "gcloud",
-            "run",
-            "services",
-            "describe",
-            service_name,
-            "--project",
-            project,
-            "--platform=managed",
-            "--region=us-central1",
-            "--format=value(status.url)",
-        ],
-        stdout=subprocess.PIPE,
-        check=True,
-    ).stdout.strip()
+    endpoint_url = (
+        subprocess.run(
+            [
+                "gcloud",
+                "run",
+                "services",
+                "describe",
+                service_name,
+                "--project",
+                project,
+                "--region=us-central1",
+                "--format=value(status.url)",
+            ],
+            stdout=subprocess.PIPE,
+            check=True,
+        )
+        .stdout.strip()
+        .decode()
+    )
 
-    token = subprocess.run(
-        ["gcloud", "auth", "print-identity-token"], stdout=subprocess.PIPE, check=True
-    ).stdout.strip()
+    token = (
+        subprocess.run(
+            ["gcloud", "auth", "print-identity-token"],
+            stdout=subprocess.PIPE,
+            check=True,
+        )
+        .stdout.strip()
+        .decode()
+    )
 
     yield endpoint_url, token
 
@@ -82,7 +94,6 @@ def services():
             "--project",
             project,
             "--async",
-            "--platform=managed",
             "--region=us-central1",
             "--quiet",
         ],
@@ -91,23 +102,28 @@ def services():
 
 
 def test_auth(services):
-    url = services[0].decode()
-    token = services[1].decode()
-
-    req = request.Request(url, headers={"Authorization": f"Bearer {token}"})
-
-    response = request.urlopen(req)
-    assert response.status == 200
-    assert "Hello" in response.read().decode()
-    assert "anonymous" not in response.read().decode()
-
-
-def test_noauth(services):
-    url = services[0].decode()
+    url = services[0]
+    token = services[1]
 
     req = request.Request(url)
-
     try:
         _ = request.urlopen(req)
     except error.HTTPError as e:
         assert e.code == 403
+
+    retry_strategy = Retry(
+        total=3,
+        status_forcelist=[400, 401, 403, 404, 500, 502, 503, 504],
+        allowed_methods=["GET", "POST"],
+        backoff_factor=3,
+    )
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+
+    client = requests.session()
+    client.mount("https://", adapter)
+
+    response = client.get(url, headers={"Authorization": f"Bearer {token}"})
+
+    assert response.status_code == 200
+    assert "Hello" in response.content.decode("UTF-8")
+    assert "anonymous" not in response.content.decode("UTF-8")

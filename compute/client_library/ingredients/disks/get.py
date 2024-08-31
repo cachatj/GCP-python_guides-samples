@@ -16,9 +16,6 @@
 # folder for complete code samples that are ready to be used.
 # Disabling flake8 for the ingredients file, as it would fail F821 - undefined name check.
 # flake8: noqa
-import sys
-from typing import NoReturn, Iterable
-
 from google.cloud import compute_v1
 
 
@@ -34,4 +31,6 @@ def get_disk(project_id: str, zone: str, disk_name: str) -> compute_v1.Disk:
     """
     disk_client = compute_v1.DisksClient()
     return disk_client.get(project=project_id, zone=zone, disk=disk_name)
+
+
 # </INGREDIENT>

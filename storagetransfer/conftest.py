@@ -22,7 +22,7 @@ import uuid
 
 from azure.storage.blob import BlobServiceClient, ContainerClient
 import boto3
-from google.cloud import secretmanager, storage, storage_transfer
+from google.cloud import pubsub_v1, secretmanager, storage, storage_transfer
 from google.cloud.storage_transfer import TransferJob
 
 import pytest
@@ -33,13 +33,10 @@ def secret_cache():
     """
     Cached secrets. Prevents multiple causes to Secret Manager.
     """
-    return {
-        'aws': None,
-        'azure': None
-    }
+    return {"aws": None, "azure": None}
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def project_id():
     yield os.environ.get("GOOGLE_CLOUD_PROJECT")
 
@@ -73,20 +70,20 @@ def aws_parse_and_cache_secret_json(payload: str, secret_cache):
     secret = json.loads(payload)
 
     # normalize to props as keys
-    if secret.get('AccessKey'):
-        secret = secret.get('AccessKey')
+    if secret.get("AccessKey"):
+        secret = secret.get("AccessKey")
 
-    secret_cache['aws'] = {
-        'aws_access_key_id': secret['AccessKeyId'],
-        'aws_secret_access_key': secret['SecretAccessKey'],
+    secret_cache["aws"] = {
+        "aws_access_key_id": secret["AccessKeyId"],
+        "aws_secret_access_key": secret["SecretAccessKey"],
     }
 
-    return secret_cache['aws']
+    return secret_cache["aws"]
 
 
 def aws_key_pair(secret_cache):
-    if secret_cache['aws']:
-        return secret_cache['aws']
+    if secret_cache["aws"]:
+        return secret_cache["aws"]
 
     sts_aws_secret = os.environ.get("STS_AWS_SECRET")
     if sts_aws_secret:
@@ -101,8 +98,8 @@ def aws_key_pair(secret_cache):
     aws_secret_access_key = os.environ.get("AWS_SECRET_ACCESS_KEY")
 
     return {
-        'aws_access_key_id': aws_access_key_id,
-        'aws_secret_access_key': aws_secret_access_key,
+        "aws_access_key_id": aws_access_key_id,
+        "aws_secret_access_key": aws_secret_access_key,
     }
 
 
@@ -117,23 +114,22 @@ def azure_parse_and_cache_secret_json(payload: str, secret_cache):
 
     secret = json.loads(payload)
 
-    secret_cache['azure'] = {
-        'storage_account': secret['StorageAccount'],
-        'connection_string': secret['ConnectionString'],
-        'sas_token': secret['SAS'],
+    secret_cache["azure"] = {
+        "storage_account": secret["StorageAccount"],
+        "connection_string": secret["ConnectionString"],
+        "sas_token": secret["SAS"],
     }
 
-    return secret_cache['azure']
+    return secret_cache["azure"]
 
 
 def azure_credentials(secret_cache):
-    if secret_cache['azure']:
-        return secret_cache['azure']
+    if secret_cache["azure"]:
+        return secret_cache["azure"]
 
     sts_azure_secret = os.environ.get("STS_AZURE_SECRET")
     if sts_azure_secret:
-        return azure_parse_and_cache_secret_json(
-            sts_azure_secret, secret_cache)
+        return azure_parse_and_cache_secret_json(sts_azure_secret, secret_cache)
 
     sts_azure_secret_name = os.environ.get("STS_AZURE_SECRET_NAME")
     if sts_azure_secret_name:
@@ -141,32 +137,33 @@ def azure_credentials(secret_cache):
         return azure_parse_and_cache_secret_json(res, secret_cache)
 
     raise Exception(
-        "env variables not found: 'STS_AZURE_SECRET'/'STS_AZURE_SECRET_NAME'")
+        "env variables not found: 'STS_AZURE_SECRET'/'STS_AZURE_SECRET_NAME'"
+    )
 
 
 @pytest.fixture
 def aws_access_key_id(secret_cache):
-    yield aws_key_pair(secret_cache)['aws_access_key_id']
+    yield aws_key_pair(secret_cache)["aws_access_key_id"]
 
 
 @pytest.fixture
 def aws_secret_access_key(secret_cache):
-    yield aws_key_pair(secret_cache)['aws_secret_access_key']
+    yield aws_key_pair(secret_cache)["aws_secret_access_key"]
 
 
 @pytest.fixture
 def azure_storage_account(secret_cache):
-    yield azure_credentials(secret_cache)['storage_account']
+    yield azure_credentials(secret_cache)["storage_account"]
 
 
 @pytest.fixture
 def azure_connection_string(secret_cache):
-    yield azure_credentials(secret_cache)['connection_string']
+    yield azure_credentials(secret_cache)["connection_string"]
 
 
 @pytest.fixture
 def azure_sas_token(secret_cache):
-    yield azure_credentials(secret_cache)['sas_token']
+    yield azure_credentials(secret_cache)["sas_token"]
 
 
 @pytest.fixture
@@ -177,7 +174,7 @@ def bucket_name():
 @pytest.fixture
 def sts_service_account(project_id):
     client = storage_transfer.StorageTransferServiceClient()
-    account = client.get_google_service_account({'project_id': project_id})
+    account = client.get_google_service_account({"project_id": project_id})
 
     yield account.account_email
 
@@ -198,24 +195,26 @@ def job_description_unique(project_id: str):
     # Remove job based on description as the job's name isn't predetermined
     transfer_job_to_delete: TransferJob = None
 
-    transfer_jobs = client.list_transfer_jobs({
-        'filter': json.dumps({"projectId": project_id})
-    })
+    transfer_jobs = client.list_transfer_jobs(
+        {"filter": json.dumps({"projectId": project_id})}
+    )
 
     for transfer_job in transfer_jobs:
         if transfer_job.description == description:
             transfer_job_to_delete = transfer_job
             break
 
-    if transfer_job_to_delete and \
-            transfer_job_to_delete.status != TransferJob.Status.DELETED:
-        client.update_transfer_job({
-            "job_name": transfer_job_to_delete.name,
-            "project_id": project_id,
-            "transfer_job": {
-                "status": storage_transfer.TransferJob.Status.DELETED
+    if (
+        transfer_job_to_delete
+        and transfer_job_to_delete.status != TransferJob.Status.DELETED
+    ):
+        client.update_transfer_job(
+            {
+                "job_name": transfer_job_to_delete.name,
+                "project_id": project_id,
+                "transfer_job": {"status": storage_transfer.TransferJob.Status.DELETED},
             }
-        })
+        )
 
 
 @pytest.fixture
@@ -225,10 +224,14 @@ def aws_source_bucket(bucket_name: str, secret_cache):
     tests are ran.
     """
 
-    s3_client = boto3.client('s3', **aws_key_pair(secret_cache))
-    s3_resource = boto3.resource('s3', **aws_key_pair(secret_cache))
+    s3_client = boto3.client("s3", **aws_key_pair(secret_cache))
+    s3_resource = boto3.resource("s3", **aws_key_pair(secret_cache))
 
-    s3_client.create_bucket(Bucket=bucket_name)
+    try:
+        s3_client.create_bucket(Bucket=bucket_name)
+    except Exception:
+        # Skip AWS tests until bucket quota limit is resolved, per team discussion.
+        pytest.skip("Skipping due to AWS bucket restrictions and limitations.")
 
     yield bucket_name
 
@@ -244,10 +247,12 @@ def azure_source_container(bucket_name: str, azure_connection_string: str):
     """
 
     service: BlobServiceClient = BlobServiceClient.from_connection_string(
-        conn_str=azure_connection_string)
+        conn_str=azure_connection_string
+    )
 
     container_client: ContainerClient = service.get_container_client(
-        container=bucket_name)
+        container=bucket_name
+    )
     container_client.create_container()
 
     yield bucket_name
@@ -345,7 +350,7 @@ def agent_pool_name():
     """
 
     # use default agent
-    yield ''
+    yield ""
 
 
 @pytest.fixture
@@ -355,7 +360,7 @@ def posix_root_directory():
     """
 
     # use arbitrary path
-    yield '/my-posix-root/'
+    yield "/my-posix-root/"
 
 
 @pytest.fixture
@@ -365,4 +370,42 @@ def manifest_file(source_bucket: storage.Bucket):
     """
 
     # use arbitrary path and name
-    yield f'gs://{source_bucket.name}/test-manifest.csv'
+    yield f"gs://{source_bucket.name}/test-manifest.csv"
+
+
+@pytest.fixture
+def pubsub_id(project_id: str):
+    """
+    Yields a pubsub subscription ID. Deletes it afterwards
+    """
+    publisher = pubsub_v1.PublisherClient()
+    topic_id = f"pubsub-sts-topic-{uuid.uuid4()}"
+    topic_path = publisher.topic_path(project_id, topic_id)
+    publisher.create_topic(request={"name": topic_path})
+
+    subscriber = pubsub_v1.SubscriberClient()
+    subscription_id = f"pubsub-sts-subscription-{uuid.uuid4()}"
+    subscription_path = subscriber.subscription_path(project_id, subscription_id)
+    subscription = subscriber.create_subscription(
+        request={"name": subscription_path, "topic": topic_path}
+    )
+
+    yield str(subscription.name)
+
+    subscriber.delete_subscription(request={"subscription": subscription_path})
+    subscriber.close()
+    publisher.delete_topic(request={"topic": topic_path})
+
+
+@pytest.fixture
+def sqs_queue_arn(secret_cache):
+    """
+    Yields an AWS SQS queue ARN. Deletes it afterwards.
+    """
+    sqs = boto3.resource("sqs", **aws_key_pair(secret_cache), region_name="us-west-1")
+    queue_name = f"sqs-sts-queue-{uuid.uuid4()}"
+    queue = sqs.create_queue(QueueName=queue_name)
+
+    yield queue.attributes["QueueArn"]
+
+    queue.delete()

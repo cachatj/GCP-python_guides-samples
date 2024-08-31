@@ -20,6 +20,8 @@
 
 
 # [START compute_instances_create_from_template_with_overrides]
+from __future__ import annotations
+
 import sys
 from typing import Any
 
@@ -31,8 +33,9 @@ def wait_for_extended_operation(
     operation: ExtendedOperation, verbose_name: str = "operation", timeout: int = 300
 ) -> Any:
     """
-    This method will wait for the extended (long-running) operation to
-    complete. If the operation is successful, it will return its result.
+    Waits for the extended (long-running) operation to complete.
+
+    If the operation is successful, it will return its result.
     If the operation ends with an error, an exception will be raised.
     If there were any warnings during the execution of the operation
     they will be printed to sys.stderr.
@@ -98,7 +101,7 @@ def create_instance_from_template_with_overrides(
               https://cloud.google.com/sdk/gcloud/reference/compute/machine-types/list
         new_disk_source_image: Path the the disk image you want to use for your new
             disk. This can be one of the public images
-            (like "projects/debian-cloud/global/images/family/debian-10")
+            (like "projects/debian-cloud/global/images/family/debian-12")
             or a private image you have access to.
             For a list of available public images, see the documentation:
             http://cloud.google.com/compute/docs/images

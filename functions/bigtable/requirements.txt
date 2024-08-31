@@ -1,1 +1,2 @@
-google-cloud-bigtable==2.10.1
+functions-framework==3.7.0
+google-cloud-bigtable==2.23.1

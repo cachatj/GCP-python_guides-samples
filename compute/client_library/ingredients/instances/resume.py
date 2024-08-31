@@ -16,8 +16,6 @@
 # folder for complete code samples that are ready to be used.
 # Disabling flake8 for the ingredients file, as it would fail F821 - undefined name check.
 # flake8: noqa
-import time
-
 from google.cloud import compute_v1
 
 
@@ -32,16 +30,20 @@ def resume_instance(project_id: str, zone: str, instance_name: str) -> None:
     """
     instance_client = compute_v1.InstancesClient()
 
-    instance = instance_client.get(project=project_id, zone=zone, instance=instance_name)
+    instance = instance_client.get(
+        project=project_id, zone=zone, instance=instance_name
+    )
     if instance.status != compute_v1.Instance.Status.SUSPENDED.name:
-        raise RuntimeError(f"Only suspended instances can be resumed. "
-                           f"Instance {instance_name} is in {instance.status} state.")
+        raise RuntimeError(
+            f"Only suspended instances can be resumed. "
+            f"Instance {instance_name} is in {instance.status} state."
+        )
 
     operation = instance_client.resume(
         project=project_id, zone=zone, instance=instance_name
     )
 
     wait_for_extended_operation(operation, "instance resumption")
-    return
-# </INGREDIENT>
 
+
+# </INGREDIENT>

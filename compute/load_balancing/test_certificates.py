@@ -11,11 +11,14 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-import os
+
+# flake8: noqa
+
 from pathlib import Path
 import time
 import uuid
 
+import google.auth
 from googleapiclient import discovery
 import pytest
 from pytest import fixture
@@ -23,7 +26,7 @@ from pytest import fixture
 from create_certificate import create_certificate
 from create_regional_certificate import create_regional_certificate
 
-PROJECT_ID = os.environ["GOOGLE_CLOUD_PROJECT"]
+PROJECT_ID = google.auth.default()[1]
 CERTIFICATE_FILE = Path(__file__).parent / "test_fixtures" / "certificate.pem"
 PRIVATE_KEY_FILE = Path(__file__).parent / "test_fixtures" / "test_key.pem"
 
@@ -49,10 +52,10 @@ def autodelete_certificate_name(api_service):
 def autodelete_regional_certificate_name(api_service):
     cert_name = "test-certificate-" + uuid.uuid4().hex[:10]
 
-    yield cert_name, "europe-central2"
+    yield cert_name, "europe-west2"
 
     api_service.regionSslCertificates().delete(
-        project=PROJECT_ID, sslCertificate=cert_name, region="europe-central2"
+        project=PROJECT_ID, sslCertificate=cert_name, region="europe-west2"
     ).execute()
 
 

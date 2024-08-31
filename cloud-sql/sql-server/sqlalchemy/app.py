@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import datetime
 import logging
 import os
-from typing import Dict
 
 from flask import Flask, render_template, request, Response
 import sqlalchemy
@@ -72,11 +73,12 @@ db = None
 # init_db lazily instantiates a database connection pool. Users of Cloud Run or
 # App Engine may wish to skip this lazy instantiation and connect as soon
 # as the function is loaded. This is primarily to help testing.
-@app.before_first_request
+@app.before_request
 def init_db() -> sqlalchemy.engine.base.Engine:
     global db
-    db = init_connection_pool()
-    migrate_db(db)
+    if db is None:
+        db = init_connection_pool()
+        migrate_db(db)
 
 
 @app.route("/", methods=["GET"])
@@ -87,16 +89,18 @@ def render_index() -> str:
 
 @app.route("/votes", methods=["POST"])
 def cast_vote() -> Response:
-    team = request.form['team']
+    team = request.form["team"]
     return save_vote(db, team)
 
 
-def get_index_context(db: sqlalchemy.engine.base.Engine) -> Dict:
+def get_index_context(db: sqlalchemy.engine.base.Engine) -> dict:
     votes = []
     with db.connect() as conn:
         # Execute the query and fetch all results
         recent_votes = conn.execute(
-            "SELECT TOP(5) candidate, time_cast FROM votes ORDER BY time_cast DESC"
+            sqlalchemy.text(
+                "SELECT TOP(5) candidate, time_cast FROM votes ORDER BY time_cast DESC"
+            )
         ).fetchall()
         # Convert the results into a list of dicts representing votes
         for row in recent_votes:
@@ -106,11 +110,9 @@ def get_index_context(db: sqlalchemy.engine.base.Engine) -> Dict:
             "SELECT COUNT(vote_id) FROM votes WHERE candidate=:candidate"
         )
         # Count number of votes for tabs
-        tab_result = conn.execute(stmt, candidate="TABS").fetchone()
-        tab_count = tab_result[0]
+        tab_count = conn.execute(stmt, parameters={"candidate": "TABS"}).scalar()
         # Count number of votes for spaces
-        space_result = conn.execute(stmt, candidate="SPACES").fetchone()
-        space_count = space_result[0]
+        space_count = conn.execute(stmt, parameters={"candidate": "SPACES"}).scalar()
     return {
         "recent_votes": votes,
         "space_count": space_count,
@@ -138,7 +140,8 @@ def save_vote(db: sqlalchemy.engine.base.Engine, team: str) -> Response:
         # Using a with statement ensures that the connection is always released
         # back into the pool at the end of statement (even if an error occurs)
         with db.connect() as conn:
-            conn.execute(stmt, time_cast=time_cast, candidate=team)
+            conn.execute(stmt, parameters={"time_cast": time_cast, "candidate": team})
+            conn.commit()
     except Exception as e:
         # If something goes wrong, handle the error in this section. This might
         # involve retrying or adjusting parameters depending on the situation.
@@ -153,8 +156,7 @@ def save_vote(db: sqlalchemy.engine.base.Engine, team: str) -> Response:
     # [END cloud_sql_sqlserver_sqlalchemy_connection]
 
     return Response(
-        status=200,
-        response=f"Vote successfully cast for '{team}' at time {time_cast}!"
+        status=200, response=f"Vote successfully cast for '{team}' at time {time_cast}!"
     )
 
 

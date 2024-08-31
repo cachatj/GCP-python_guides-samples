@@ -15,13 +15,12 @@
 A sample app demonstrating Google Cloud Trace
 """
 import os
-
-import mock
+from unittest import mock
 
 import app
 
 
-def test_traces():
+def test_traces() -> None:
     expected = "Lorem ipsum dolor sit amet"
     os.environ["KEYWORD"] = expected
     app.app.testing = True
@@ -30,4 +29,4 @@ def test_traces():
     client = app.app.test_client()
     resp = client.get("/")
     assert resp.status_code == 200
-    assert expected in resp.data.decode('utf-8')
+    assert expected in resp.data.decode("utf-8")

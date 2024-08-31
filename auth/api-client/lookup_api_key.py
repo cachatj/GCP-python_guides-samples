@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# [START auth_cloud_lookup_api_key]
+# [START apikeys_lookup_api_key]
 
 from google.cloud import api_keys_v2
 
@@ -35,9 +35,9 @@ def lookup_api_key(api_key_string: str) -> None:
 
     # Initialize the lookup request and set the API key string.
     lookup_key_request = api_keys_v2.LookupKeyRequest(
-      key_string=api_key_string,
-      # Optionally, you can also set the etag (version).
-      # etag=etag,
+        key_string=api_key_string,
+        # Optionally, you can also set the etag (version).
+        # etag=etag,
     )
 
     # Make the request and obtain the response.
@@ -45,4 +45,5 @@ def lookup_api_key(api_key_string: str) -> None:
 
     print(f"Successfully retrieved the API key name: {lookup_key_response.name}")
 
-# [END auth_cloud_lookup_api_key]
+
+# [END apikeys_lookup_api_key]

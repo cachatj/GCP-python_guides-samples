@@ -37,14 +37,14 @@ def IncrementCounter(environ, start_response):
     # Use default URL and queue name, no task name, execute ASAP.
     deferred.defer(do_something_later, my_key, 10)
 
-    # Use default URL and queue name, no task name, execute after 10s.
-    deferred.defer(do_something_later, my_key, 10, _countdown=20)
+    # Use default URL and queue name, no task name, execute after 1 minute.
+    deferred.defer(do_something_later, my_key, 10, _countdown=60)
 
     # Providing non-default task queue arguments
-    deferred.defer(do_something_later, my_key, 10, _url="/custom/path", _countdown=40)
+    deferred.defer(do_something_later, my_key, 10, _url="/custom/path", _countdown=120)
 
     start_response("200 OK", [("Content-Type", "text/html")])
-    return ["Deferred counter increment.".encode("utf-8")]
+    return [b"Deferred counter increment."]
 
 
 def ViewCounter(environ, start_response):
@@ -77,7 +77,7 @@ class WSGIApplication:
                 return handler(environ, start_response)
 
         start_response("404 Not Found", [("Content-Type", "text/plain")])
-        return ["Not found".encode("utf-8")]
+        return [b"Not found"]
 
 
 app = wrap_wsgi_app(WSGIApplication(), use_deferred=True)

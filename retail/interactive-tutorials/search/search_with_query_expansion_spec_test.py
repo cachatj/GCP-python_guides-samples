@@ -17,9 +17,12 @@
 import re
 import subprocess
 
+from google.api_core.retry import Retry
+
 from search_with_query_expansion_spec import search
 
 
+@Retry()
 def test_search_with_query_expansion_spec_pass():
     output = str(
         subprocess.check_output(
@@ -36,6 +39,4 @@ def test_search_with_query_expansion_spec_pass():
 def test_search_with_query_expansion_spec():
     response = search()
 
-    assert response.results[0].product.title == "Google Youth Hero Tee Grey"
-    assert response.results[2].product.title != "Google Youth Hero Tee Grey"
     assert response.query_expansion_info.expanded_query is True

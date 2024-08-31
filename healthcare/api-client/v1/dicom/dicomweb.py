@@ -23,19 +23,17 @@ def dicomweb_store_instance(project_id, location, dataset_id, dicom_store_id, dc
 
     See https://github.com/GoogleCloudPlatform/python-docs-samples/tree/main/healthcare/api-client/v1/dicom
     before running the sample."""
-    # Imports Python's built-in "os" module
-    import os
 
     # Imports the google.auth.transport.requests transport
     from google.auth.transport import requests
 
-    # Imports a module to allow authentication using a service account
-    from google.oauth2 import service_account
+    # Imports a module to allow authentication using Application Default Credentials (ADC)
+    import google.auth
 
-    # Gets credentials from the environment.
-    credentials = service_account.Credentials.from_service_account_file(
-        os.environ["GOOGLE_APPLICATION_CREDENTIALS"]
-    )
+    # Gets credentials from the environment. google.auth.default() returns credentials and the
+    # associated project ID, but in this sample, the project ID is passed in manually.
+    credentials, _ = google.auth.default()
+
     scoped_credentials = credentials.with_scopes(
         ["https://www.googleapis.com/auth/cloud-platform"]
     )
@@ -51,7 +49,7 @@ def dicomweb_store_instance(project_id, location, dataset_id, dicom_store_id, dc
     # dataset_id = 'my-dataset'  # replace with the parent dataset's ID
     # dicom_store_id = 'my-dicom-store' # replace with the DICOM store ID
     # dcm_file = 'dicom000_0001.dcm'  # replace with a DICOM file
-    url = "{}/projects/{}/locations/{}".format(base_url, project_id, location)
+    url = f"{base_url}/projects/{project_id}/locations/{location}"
 
     dicomweb_path = "{}/datasets/{}/dicomStores/{}/dicomWeb/studies".format(
         url, dataset_id, dicom_store_id
@@ -79,19 +77,17 @@ def dicomweb_search_instance(project_id, location, dataset_id, dicom_store_id):
 
     See https://github.com/GoogleCloudPlatform/python-docs-samples/tree/main/healthcare/api-client/v1/dicom
     before running the sample."""
-    # Imports Python's built-in "os" module
-    import os
 
     # Imports the google.auth.transport.requests transport
     from google.auth.transport import requests
 
-    # Imports a module to allow authentication using a service account
-    from google.oauth2 import service_account
+    # Imports a module to allow authentication using Application Default Credentials (ADC)
+    import google.auth
 
-    # Gets credentials from the environment.
-    credentials = service_account.Credentials.from_service_account_file(
-        os.environ["GOOGLE_APPLICATION_CREDENTIALS"]
-    )
+    # Gets credentials from the environment. google.auth.default() returns credentials and the
+    # associated project ID, but in this sample, the project ID is passed in manually.
+    credentials, _ = google.auth.default()
+
     scoped_credentials = credentials.with_scopes(
         ["https://www.googleapis.com/auth/cloud-platform"]
     )
@@ -106,7 +102,7 @@ def dicomweb_search_instance(project_id, location, dataset_id, dicom_store_id):
     # location = 'us-central1'  # replace with the parent dataset's location
     # dataset_id = 'my-dataset'  # replace with the parent dataset's ID
     # dicom_store_id = 'my-dicom-store' # replace with the DICOM store ID
-    url = "{}/projects/{}/locations/{}".format(base_url, project_id, location)
+    url = f"{base_url}/projects/{project_id}/locations/{location}"
 
     dicomweb_path = "{}/datasets/{}/dicomStores/{}/dicomWeb/instances".format(
         url, dataset_id, dicom_store_id
@@ -137,19 +133,17 @@ def dicomweb_retrieve_study(
 
     See https://github.com/GoogleCloudPlatform/python-docs-samples/tree/main/healthcare/api-client/v1/dicom
     before running the sample."""
-    # Imports Python's built-in "os" module
-    import os
 
     # Imports the google.auth.transport.requests transport
     from google.auth.transport import requests
 
-    # Imports a module to allow authentication using a service account
-    from google.oauth2 import service_account
+    # Imports a module to allow authentication using Application Default Credentials (ADC)
+    import google.auth
 
-    # Gets credentials from the environment.
-    credentials = service_account.Credentials.from_service_account_file(
-        os.environ["GOOGLE_APPLICATION_CREDENTIALS"]
-    )
+    # Gets credentials from the environment. google.auth.default() returns credentials and the
+    # associated project ID, but in this sample, the project ID is passed in manually.
+    credentials, _ = google.auth.default()
+
     scoped_credentials = credentials.with_scopes(
         ["https://www.googleapis.com/auth/cloud-platform"]
     )
@@ -165,7 +159,7 @@ def dicomweb_retrieve_study(
     # dataset_id = 'my-dataset'  # replace with the parent dataset's ID
     # dicom_store_id = 'my-dicom-store' # replace with the DICOM store ID
     # study_uid = '1.3.6.1.4.1.5062.55.1.227'  # replace with the study UID
-    url = "{}/projects/{}/locations/{}".format(base_url, project_id, location)
+    url = f"{base_url}/projects/{project_id}/locations/{location}"
 
     dicomweb_path = "{}/datasets/{}/dicomStores/{}/dicomWeb/studies/{}".format(
         url, dataset_id, dicom_store_id, study_uid
@@ -182,7 +176,7 @@ def dicomweb_retrieve_study(
 
     with open(file_name, "wb") as f:
         f.write(response.content)
-        print("Retrieved study and saved to {} in current directory".format(file_name))
+        print(f"Retrieved study and saved to {file_name} in current directory")
 
     return response
 
@@ -196,19 +190,17 @@ def dicomweb_search_studies(project_id, location, dataset_id, dicom_store_id):
 
     See https://github.com/GoogleCloudPlatform/python-docs-samples/tree/main/healthcare/api-client/v1/dicom
     before running the sample."""
-    # Imports Python's built-in "os" module
-    import os
 
     # Imports the google.auth.transport.requests transport
     from google.auth.transport import requests
 
-    # Imports a module to allow authentication using a service account
-    from google.oauth2 import service_account
+    # Imports a module to allow authentication using Application Default Credentials (ADC)
+    import google.auth
 
-    # Gets credentials from the environment.
-    credentials = service_account.Credentials.from_service_account_file(
-        os.environ["GOOGLE_APPLICATION_CREDENTIALS"]
-    )
+    # Gets credentials from the environment. google.auth.default() returns credentials and the
+    # associated project ID, but in this sample, the project ID is passed in manually.
+    credentials, _ = google.auth.default()
+
     scoped_credentials = credentials.with_scopes(
         ["https://www.googleapis.com/auth/cloud-platform"]
     )
@@ -223,7 +215,7 @@ def dicomweb_search_studies(project_id, location, dataset_id, dicom_store_id):
     # location = 'us-central1'  # replace with the parent dataset's location
     # dataset_id = 'my-dataset'  # replace with the parent dataset's ID
     # dicom_store_id = 'my-dicom-store' # replace with the DICOM store ID
-    url = "{}/projects/{}/locations/{}".format(base_url, project_id, location)
+    url = f"{base_url}/projects/{project_id}/locations/{location}"
 
     dicomweb_path = "{}/datasets/{}/dicomStores/{}/dicomWeb/studies".format(
         url, dataset_id, dicom_store_id
@@ -238,7 +230,7 @@ def dicomweb_search_studies(project_id, location, dataset_id, dicom_store_id):
 
     response.raise_for_status()
 
-    print("Studies found: response is {}".format(response))
+    print(f"Studies found: response is {response}")
 
     # Uncomment the following lines to process the response as JSON.
     # patients = response.json()
@@ -265,19 +257,17 @@ def dicomweb_retrieve_instance(
 
     See https://github.com/GoogleCloudPlatform/python-docs-samples/tree/main/healthcare/api-client/v1/dicom
     before running the sample."""
-    # Imports Python's built-in "os" module
-    import os
 
     # Imports the google.auth.transport.requests transport
     from google.auth.transport import requests
 
-    # Imports a module to allow authentication using a service account
-    from google.oauth2 import service_account
+    # Imports a module to allow authentication using Application Default Credentials (ADC)
+    import google.auth
 
-    # Gets credentials from the environment.
-    credentials = service_account.Credentials.from_service_account_file(
-        os.environ["GOOGLE_APPLICATION_CREDENTIALS"]
-    )
+    # Gets credentials from the environment. google.auth.default() returns credentials and the
+    # associated project ID, but in this sample, the project ID is passed in manually.
+    credentials, _ = google.auth.default()
+
     scoped_credentials = credentials.with_scopes(
         ["https://www.googleapis.com/auth/cloud-platform"]
     )
@@ -295,7 +285,7 @@ def dicomweb_retrieve_instance(
     # study_uid = '1.3.6.1.4.1.5062.55.1.2270943358.716200484.1363785608958.61.0'  # replace with the study UID
     # series_uid = '2.24.52329571877967561426579904912379710633'  # replace with the series UID
     # instance_uid = '1.3.6.2.4.2.14619.5.2.1.6280.6001.129311971280445372188125744148'  # replace with the instance UID
-    url = "{}/projects/{}/locations/{}".format(base_url, project_id, location)
+    url = f"{base_url}/projects/{project_id}/locations/{location}"
 
     dicom_store_path = "{}/datasets/{}/dicomStores/{}".format(
         url, dataset_id, dicom_store_id
@@ -340,19 +330,17 @@ def dicomweb_retrieve_rendered(
 
     See https://github.com/GoogleCloudPlatform/python-docs-samples/tree/main/healthcare/api-client/v1/dicom
     before running the sample."""
-    # Imports Python's built-in "os" module
-    import os
 
     # Imports the google.auth.transport.requests transport
     from google.auth.transport import requests
 
-    # Imports a module to allow authentication using a service account
-    from google.oauth2 import service_account
+    # Imports a module to allow authentication using Application Default Credentials (ADC)
+    import google.auth
 
-    # Gets credentials from the environment.
-    credentials = service_account.Credentials.from_service_account_file(
-        os.environ["GOOGLE_APPLICATION_CREDENTIALS"]
-    )
+    # Gets credentials from the environment. google.auth.default() returns credentials and the
+    # associated project ID, but in this sample, the project ID is passed in manually.
+    credentials, _ = google.auth.default()
+
     scoped_credentials = credentials.with_scopes(
         ["https://www.googleapis.com/auth/cloud-platform"]
     )
@@ -370,7 +358,7 @@ def dicomweb_retrieve_rendered(
     # study_uid = '1.3.6.1.4.1.5062.55.1.2270943358.716200484.1363785608958.61.0'  # replace with the study UID
     # series_uid = '2.24.52329571877967561426579904912379710633'  # replace with the series UID
     # instance_uid = '1.3.6.2.4.2.14619.5.2.1.6280.6001.129311971280445372188125744148'  # replace with the instance UID
-    url = "{}/projects/{}/locations/{}".format(base_url, project_id, location)
+    url = f"{base_url}/projects/{project_id}/locations/{location}"
 
     dicom_store_path = "{}/datasets/{}/dicomStores/{}".format(
         url, dataset_id, dicom_store_id
@@ -408,19 +396,17 @@ def dicomweb_delete_study(project_id, location, dataset_id, dicom_store_id, stud
 
     See https://github.com/GoogleCloudPlatform/python-docs-samples/tree/main/healthcare/api-client/v1/dicom
     before running the sample."""
-    # Imports Python's built-in "os" module
-    import os
 
     # Imports the google.auth.transport.requests transport
     from google.auth.transport import requests
 
-    # Imports a module to allow authentication using a service account
-    from google.oauth2 import service_account
+    # Imports a module to allow authentication using Application Default Credentials (ADC)
+    import google.auth
 
-    # Gets credentials from the environment.
-    credentials = service_account.Credentials.from_service_account_file(
-        os.environ["GOOGLE_APPLICATION_CREDENTIALS"]
-    )
+    # Gets credentials from the environment. google.auth.default() returns credentials and the
+    # associated project ID, but in this sample, the project ID is passed in manually.
+    credentials, _ = google.auth.default()
+
     scoped_credentials = credentials.with_scopes(
         ["https://www.googleapis.com/auth/cloud-platform"]
     )
@@ -436,7 +422,7 @@ def dicomweb_delete_study(project_id, location, dataset_id, dicom_store_id, stud
     # dataset_id = 'my-dataset'  # replace with the parent dataset's ID
     # dicom_store_id = 'my-dicom-store' # replace with the DICOM store ID
     # study_uid = '1.3.6.1.4.1.5062.55.1.2270943358.716200484.1363785608958.61.0'  # replace with the study UID
-    url = "{}/projects/{}/locations/{}".format(base_url, project_id, location)
+    url = f"{base_url}/projects/{project_id}/locations/{location}"
 
     dicomweb_path = "{}/datasets/{}/dicomStores/{}/dicomWeb/studies/{}".format(
         url, dataset_id, dicom_store_id, study_uid

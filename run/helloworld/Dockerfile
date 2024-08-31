@@ -13,13 +13,12 @@
 # limitations under the License.
 
 # [START cloudrun_helloworld_dockerfile]
-# [START run_helloworld_dockerfile]
 
 # Use the official lightweight Python image.
 # https://hub.docker.com/_/python
-FROM python:3.10-slim
+FROM python:3.11-slim
 
-# Allow statements and log messages to immediately appear in the Knative logs
+# Allow statements and log messages to immediately appear in the logs
 ENV PYTHONUNBUFFERED True
 
 # Copy local code to the container image.
@@ -37,5 +36,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Timeout is set to 0 to disable the timeouts of the workers to allow Cloud Run to handle instance scaling.
 CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 main:app
 
-# [END run_helloworld_dockerfile]
 # [END cloudrun_helloworld_dockerfile]

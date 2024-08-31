@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import datetime
 import logging
 import os
-from typing import Dict
 
 from flask import Flask, render_template, request, Response
 
@@ -32,6 +33,7 @@ logger = logging.getLogger()
 
 
 def init_connection_pool() -> sqlalchemy.engine.base.Engine:
+    """Sets up connection pool for the app."""
     # use a TCP socket when INSTANCE_HOST (e.g. 127.0.0.1) is defined
     if os.environ.get("INSTANCE_HOST"):
         return connect_tcp_socket()
@@ -44,7 +46,11 @@ def init_connection_pool() -> sqlalchemy.engine.base.Engine:
     if os.environ.get("INSTANCE_CONNECTION_NAME"):
         # Either a DB_USER or a DB_IAM_USER should be defined. If both are
         # defined, DB_IAM_USER takes precedence.
-        return connect_with_connector_auto_iam_authn() if os.environ.get("DB_IAM_USER") else connect_with_connector()
+        return (
+            connect_with_connector_auto_iam_authn()
+            if os.environ.get("DB_IAM_USER")
+            else connect_with_connector()
+        )
 
     raise ValueError(
         "Missing database connection type. Please define one of INSTANCE_HOST, INSTANCE_UNIX_SOCKET, or INSTANCE_CONNECTION_NAME"
@@ -53,12 +59,16 @@ def init_connection_pool() -> sqlalchemy.engine.base.Engine:
 
 # create 'votes' table in database if it does not already exist
 def migrate_db(db: sqlalchemy.engine.base.Engine) -> None:
+    """Creates the `votes` table if it doesn't exist."""
     with db.connect() as conn:
         conn.execute(
-            "CREATE TABLE IF NOT EXISTS votes "
-            "( vote_id SERIAL NOT NULL, time_cast timestamp NOT NULL, "
-            "candidate VARCHAR(6) NOT NULL, PRIMARY KEY (vote_id) );"
+            sqlalchemy.text(
+                "CREATE TABLE IF NOT EXISTS votes "
+                "( vote_id SERIAL NOT NULL, time_cast timestamp NOT NULL, "
+                "candidate VARCHAR(6) NOT NULL, PRIMARY KEY (vote_id) );"
+            )
         )
+        conn.commit()
 
 
 # This global variable is declared with a value of `None`, instead of calling
@@ -71,33 +81,47 @@ db = None
 # init_db lazily instantiates a database connection pool. Users of Cloud Run or
 # App Engine may wish to skip this lazy instantiation and connect as soon
 # as the function is loaded. This is primarily to help testing.
-@app.before_first_request
+@app.before_request
 def init_db() -> sqlalchemy.engine.base.Engine:
+    """Initiates connection to database and its' structure."""
     global db
-    db = init_connection_pool()
-    migrate_db(db)
+    if db is None:
+        db = init_connection_pool()
+        migrate_db(db)
 
 
 @app.route("/", methods=["GET"])
 def render_index() -> str:
+    """Serves the index page of the app."""
     context = get_index_context(db)
     return render_template("index.html", **context)
 
 
 @app.route("/votes", methods=["POST"])
 def cast_vote() -> Response:
-    team = request.form['team']
+    """Processes a single vote from user."""
+    team = request.form["team"]
     return save_vote(db, team)
 
 
 # get_index_context gets data required for rendering HTML application
-def get_index_context(db: sqlalchemy.engine.base.Engine) -> Dict:
+def get_index_context(db: sqlalchemy.engine.base.Engine) -> dict:
+    """Retrieves data from the database about the votes.
+
+    Args:
+        db: Connection to the database.
+
+    Returns:
+        A dictionary containing information about votes.
+    """
     votes = []
 
     with db.connect() as conn:
         # Execute the query and fetch all results
         recent_votes = conn.execute(
-            "SELECT candidate, time_cast FROM votes ORDER BY time_cast DESC LIMIT 5"
+            sqlalchemy.text(
+                "SELECT candidate, time_cast FROM votes ORDER BY time_cast DESC LIMIT 5"
+            )
         ).fetchall()
         # Convert the results into a list of dicts representing votes
         for row in recent_votes:
@@ -107,11 +131,9 @@ def get_index_context(db: sqlalchemy.engine.base.Engine) -> Dict:
             "SELECT COUNT(vote_id) FROM votes WHERE candidate=:candidate"
         )
         # Count number of votes for tabs
-        tab_result = conn.execute(stmt, candidate="TABS").fetchone()
-        tab_count = tab_result[0]
+        tab_count = conn.execute(stmt, parameters={"candidate": "TABS"}).scalar()
         # Count number of votes for spaces
-        space_result = conn.execute(stmt, candidate="SPACES").fetchone()
-        space_count = space_result[0]
+        space_count = conn.execute(stmt, parameters={"candidate": "SPACES"}).scalar()
 
     return {
         "space_count": space_count,
@@ -122,6 +144,15 @@ def get_index_context(db: sqlalchemy.engine.base.Engine) -> Dict:
 
 # save_vote saves a vote to the database that was retrieved from form data
 def save_vote(db: sqlalchemy.engine.base.Engine, team: str) -> Response:
+    """Saves a single vote into the database.
+
+    Args:
+        db: Connection to the database.
+        team: The identifier of a team the vote is casted on.
+
+    Returns:
+        A HTTP response that can be sent to the client.
+    """
     time_cast = datetime.datetime.now(tz=datetime.timezone.utc)
     # Verify that the team is one of the allowed options
     if team != "TABS" and team != "SPACES":
@@ -140,7 +171,8 @@ def save_vote(db: sqlalchemy.engine.base.Engine, team: str) -> Response:
         # Using a with statement ensures that the connection is always released
         # back into the pool at the end of statement (even if an error occurs)
         with db.connect() as conn:
-            conn.execute(stmt, time_cast=time_cast, candidate=team)
+            conn.execute(stmt, parameters={"time_cast": time_cast, "candidate": team})
+            conn.commit()
     except Exception as e:
         # If something goes wrong, handle the error in this section. This might
         # involve retrying or adjusting parameters depending on the situation.

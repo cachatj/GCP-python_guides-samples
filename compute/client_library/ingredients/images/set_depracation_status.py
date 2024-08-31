@@ -17,13 +17,13 @@
 # folder for complete code samples that are ready to be used.
 # Disabling flake8 for the ingredients file, as it would fail F821 - undefined name check.
 # flake8: noqa
-from typing import NoReturn
-
 from google.cloud import compute_v1
 
 
 # <INGREDIENT set_deprecation_status>
-def set_deprecation_status(project_id: str, image_name: str, status: compute_v1.DeprecationStatus.State) -> NoReturn:
+def set_deprecation_status(
+    project_id: str, image_name: str, status: compute_v1.DeprecationStatus.State
+) -> None:
     """
     Modify the deprecation status of an image.
 
@@ -39,8 +39,13 @@ def set_deprecation_status(project_id: str, image_name: str, status: compute_v1.
     image_client = compute_v1.ImagesClient()
     deprecation_status = compute_v1.DeprecationStatus()
     deprecation_status.state = status.name
-    operation = image_client.deprecate(project=project_id, image=image_name,
-                                       deprecation_status_resource=deprecation_status)
+    operation = image_client.deprecate(
+        project=project_id,
+        image=image_name,
+        deprecation_status_resource=deprecation_status,
+    )
 
     wait_for_extended_operation(operation, "changing deprecation state of an image")
+
+
 # </INGREDIENT>

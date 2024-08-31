@@ -21,8 +21,10 @@
 
 # [START compute_windows_image_create]
 # [START compute_images_create]
+from __future__ import annotations
+
 import sys
-from typing import Any, Optional
+from typing import Any
 import warnings
 
 from google.api_core.extended_operation import ExtendedOperation
@@ -33,8 +35,9 @@ def wait_for_extended_operation(
     operation: ExtendedOperation, verbose_name: str = "operation", timeout: int = 300
 ) -> Any:
     """
-    This method will wait for the extended (long-running) operation to
-    complete. If the operation is successful, it will return its result.
+    Waits for the extended (long-running) operation to complete.
+
+    If the operation is successful, it will return its result.
     If the operation ends with an error, an exception will be raised.
     If there were any warnings during the execution of the operation
     they will be printed to sys.stderr.
@@ -87,7 +90,7 @@ def create_image_from_disk(
     zone: str,
     source_disk_name: str,
     image_name: str,
-    storage_location: Optional[str] = None,
+    storage_location: str | None = None,
     force_create: bool = False,
 ) -> compute_v1.Image:
     """
@@ -115,8 +118,9 @@ def create_image_from_disk(
     disk = disk_client.get(project=project_id, zone=zone, disk=source_disk_name)
 
     for disk_user in disk.users:
+        instance_name = disk_user.split("/")[-1]
         instance = instance_client.get(
-            project=project_id, zone=zone, instance=disk_user
+            project=project_id, zone=zone, instance=instance_name
         )
         if instance.status in STOPPED_MACHINE_STATUS:
             continue

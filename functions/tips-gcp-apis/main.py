@@ -16,6 +16,7 @@
 # [START functions_tips_gcp_apis]
 import os
 
+import functions_framework
 from google.cloud import pubsub_v1
 
 
@@ -23,6 +24,7 @@ from google.cloud import pubsub_v1
 pubsub = pubsub_v1.PublisherClient()
 
 
+@functions_framework.http
 def gcp_api_call(request):
     """
     HTTP Cloud Function that uses a cached client library instance to
@@ -41,15 +43,17 @@ def gcp_api_call(request):
     See this page for more information:
         https://cloud.google.com/functions/docs/configuring/env-var#python_37_and_go_111
     """
-    project = os.getenv('GCP_PROJECT')
+    project = os.getenv("GCP_PROJECT")
     request_json = request.get_json()
 
-    topic_name = request_json['topic']
+    topic_name = request_json["topic"]
     topic_path = pubsub.topic_path(project, topic_name)
 
     # Process the request
-    data = 'Test message'.encode('utf-8')
+    data = b"Test message"
     pubsub.publish(topic_path, data=data)
 
-    return '1 message published'
+    return "1 message published"
+
+
 # [END functions_tips_gcp_apis]

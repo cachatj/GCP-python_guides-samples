@@ -16,14 +16,17 @@
 # folder for complete code samples that are ready to be used.
 # Disabling flake8 for the ingredients file, as it would fail F821 - undefined name check.
 # flake8: noqa
-import sys
-
 from google.cloud import compute_v1
 
 
 # <INGREDIENT create_disk_from_image>
 def create_disk_from_image(
-    project_id: str, zone: str, disk_name: str, disk_type: str, disk_size_gb: int, source_image: str
+    project_id: str,
+    zone: str,
+    disk_name: str,
+    disk_type: str,
+    disk_size_gb: int,
+    source_image: str,
 ) -> compute_v1.Disk:
     """
     Creates a new disk in a project in given zone using an image as base.
@@ -56,4 +59,6 @@ def create_disk_from_image(
     wait_for_extended_operation(operation, "disk creation")
 
     return disk_client.get(project=project_id, zone=zone, disk=disk.name)
+
+
 # </INGREDIENT>

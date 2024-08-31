@@ -16,13 +16,12 @@
 # folder for complete code samples that are ready to be used.
 # Disabling flake8 for the ingredients file, as it would fail F821 - undefined name check.
 # flake8: noqa
-from typing import NoReturn
 
 from google.cloud import compute_v1
 
 
 # <INGREDIENT delete_route>
-def delete_route(project_id: str, route_name: str) -> NoReturn:
+def delete_route(project_id: str, route_name: str) -> None:
     """
     Delete a route in project.
 
@@ -36,5 +35,5 @@ def delete_route(project_id: str, route_name: str) -> NoReturn:
 
     wait_for_extended_operation(operation, "route deletion")
 
-    return
+
 # </INGREDIENT>

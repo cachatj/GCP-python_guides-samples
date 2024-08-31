@@ -22,7 +22,7 @@ from ..instances.custom_hostname.get import get_hostname
 from ..instances.delete import delete_instance
 
 PROJECT = google.auth.default()[1]
-INSTANCE_ZONE = "europe-north1-c"
+INSTANCE_ZONE = "europe-west1-c"
 
 
 @pytest.fixture
@@ -36,7 +36,7 @@ def autodelete_instance_name():
 
 @pytest.fixture
 def random_hostname():
-    yield "instance.{}.hostname".format(random.randint(0, 2 ** 10))
+    yield "instance.{}.hostname".format(random.randint(0, 2**10))
 
 
 def test_custom_hostname(autodelete_instance_name, random_hostname):

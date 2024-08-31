@@ -21,7 +21,7 @@ from ..instances.spot.create import create_spot_instance
 from ..instances.spot.is_spot_vm import is_spot_vm
 
 PROJECT = google.auth.default()[1]
-INSTANCE_ZONE = "europe-central2-c"
+INSTANCE_ZONE = "europe-west2-c"
 
 
 @pytest.fixture
@@ -34,9 +34,7 @@ def autodelete_instance_name():
 
 
 def test_preemptible_creation(autodelete_instance_name):
-    instance = create_spot_instance(
-        PROJECT, INSTANCE_ZONE, autodelete_instance_name
-    )
+    instance = create_spot_instance(PROJECT, INSTANCE_ZONE, autodelete_instance_name)
 
     assert instance.name == autodelete_instance_name
     assert is_spot_vm(PROJECT, INSTANCE_ZONE, instance.name)

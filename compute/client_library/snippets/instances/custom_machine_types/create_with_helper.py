@@ -20,12 +20,14 @@
 
 
 # [START compute_custom_machine_type_create_with_helper]
+from __future__ import annotations
+
 from collections import namedtuple
 from enum import Enum
 from enum import unique
 import re
 import sys
-from typing import Any, List
+from typing import Any
 import warnings
 
 from google.api_core.extended_operation import ExtendedOperation
@@ -282,8 +284,9 @@ def wait_for_extended_operation(
     operation: ExtendedOperation, verbose_name: str = "operation", timeout: int = 300
 ) -> Any:
     """
-    This method will wait for the extended (long-running) operation to
-    complete. If the operation is successful, it will return its result.
+    Waits for the extended (long-running) operation to complete.
+
+    If the operation is successful, it will return its result.
     If the operation ends with an error, an exception will be raised.
     If there were any warnings during the execution of the operation
     they will be printed to sys.stderr.
@@ -329,14 +332,14 @@ def create_instance(
     project_id: str,
     zone: str,
     instance_name: str,
-    disks: List[compute_v1.AttachedDisk],
+    disks: list[compute_v1.AttachedDisk],
     machine_type: str = "n1-standard-1",
     network_link: str = "global/networks/default",
     subnetwork_link: str = None,
     internal_ip: str = None,
     external_access: bool = False,
     external_ipv4: str = None,
-    accelerators: List[compute_v1.AcceleratorConfig] = None,
+    accelerators: list[compute_v1.AcceleratorConfig] = None,
     preemptible: bool = False,
     spot: bool = False,
     instance_termination_action: str = "STOP",
@@ -387,7 +390,7 @@ def create_instance(
 
     # Use the network interface provided in the network_link argument.
     network_interface = compute_v1.NetworkInterface()
-    network_interface.name = network_link
+    network_interface.network = network_link
     if subnetwork_link:
         network_interface.subnetwork = subnetwork_link
 
@@ -413,8 +416,12 @@ def create_instance(
     else:
         instance.machine_type = f"zones/{zone}/machineTypes/{machine_type}"
 
+    instance.scheduling = compute_v1.Scheduling()
     if accelerators:
         instance.guest_accelerators = accelerators
+        instance.scheduling.on_host_maintenance = (
+            compute_v1.Scheduling.OnHostMaintenance.TERMINATE.name
+        )
 
     if preemptible:
         # Set the preemptible setting
@@ -426,7 +433,6 @@ def create_instance(
 
     if spot:
         # Set the Spot VM setting
-        instance.scheduling = compute_v1.Scheduling()
         instance.scheduling.provisioning_model = (
             compute_v1.Scheduling.ProvisioningModel.SPOT.name
         )
@@ -488,7 +494,7 @@ def create_custom_instance(
     )
     custom_type = CustomMachineType(zone, cpu_series, memory, core_count)
 
-    newest_debian = get_image_from_family(project="debian-cloud", family="debian-10")
+    newest_debian = get_image_from_family(project="debian-cloud", family="debian-12")
     disk_type = f"zones/{zone}/diskTypes/pd-standard"
     disks = [disk_from_image(disk_type, 10, True, newest_debian.self_link)]
 

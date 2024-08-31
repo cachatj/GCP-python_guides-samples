@@ -15,13 +15,14 @@
 import datetime
 import os
 
+from google.api_core.retry import Retry
 from google.cloud import automl
 import pytest
 
 import delete_dataset
 
 PROJECT_ID = os.environ["AUTOML_PROJECT_ID"]
-BUCKET_ID = "{}-lcm".format(PROJECT_ID)
+BUCKET_ID = f"{PROJECT_ID}-lcm"
 
 
 @pytest.fixture(scope="function")
@@ -39,6 +40,7 @@ def dataset_id():
     yield dataset_id
 
 
+@Retry()
 def test_delete_dataset(capsys, dataset_id):
     # delete dataset
     delete_dataset.delete_dataset(PROJECT_ID, dataset_id)

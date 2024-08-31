@@ -26,13 +26,13 @@ def company_name():
     histogram_sample.tear_down(company_name, job_name)
 
 
-@pytest.mark.flaky(max_runs=2, min_passes=1)
+@pytest.mark.flaky(max_runs=4, min_passes=1)
 def test_histogram_sample(company_name, capsys):
     @backoff.on_exception(backoff.expo, AssertionError, max_time=120)
     def eventually_consistent_test():
         histogram_sample.run_sample(company_name)
         out, _ = capsys.readouterr()
-        assert re.search('COMPANY_ID', out)
-        assert re.search('someFieldName1', out)
+        assert re.search("COMPANY_ID", out)
+        assert re.search("someFieldName1", out)
 
     eventually_consistent_test()

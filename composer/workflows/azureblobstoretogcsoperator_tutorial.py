@@ -41,7 +41,6 @@ PROCESSING_PYTHON_FILE = f"gs://{BUCKET_NAME}/data_analytics_process.py"
 
 # Azure configs
 AZURE_BLOB_NAME = "{{var.value.azure_blob_name}}"
-AZURE_BLOB_PATH = "{{var.value.azure_blob_path}}"
 AZURE_CONTAINER_NAME = "{{var.value.azure_container_name}}"
 
 BATCH_ID = "data-processing-{{ ts_nodash | lower}}"  # Dataproc serverless only allows lowercase characters
@@ -82,12 +81,10 @@ with models.DAG(
     schedule_interval=datetime.timedelta(days=1),
     default_args=default_dag_args,
 ) as dag:
-
     azure_blob_to_gcs = AzureBlobStorageToGCSOperator(
         task_id="azure_blob_to_gcs",
         # Azure args
         blob_name=AZURE_BLOB_NAME,
-        file_path=AZURE_BLOB_PATH,
         container_name=AZURE_CONTAINER_NAME,
         wasb_conn_id="azure_blob_connection",
         filename=f"https://console.cloud.google.com/storage/browser/{BUCKET_NAME}/",
@@ -96,7 +93,6 @@ with models.DAG(
         object_name="holidays.csv",
         bucket_name=BUCKET_NAME,
         gzip=False,
-        delegate_to=None,
         impersonation_chain=None,
     )
 
@@ -123,7 +119,6 @@ with models.DAG(
     )
 
     with TaskGroup("join_bq_datasets") as bq_join_group:
-
         for year in range(1997, 2022):
             BQ_DATASET_NAME = f"bigquery-public-data.ghcn_d.ghcnd_{str(year)}"
             BQ_DESTINATION_TABLE_NAME = "holidays_weather_joined"
